@@ -48,7 +48,9 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-//import org.json;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A Cardboard sample application.
@@ -604,12 +606,17 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
             @Override
             public void onMessage(String s) {
                 final String message = s;
-                Log.i("Websocket_message", s);
-                //JSONObject obj = new JSONObject(s);
-                //JSONArray pos = obj.getJSONArray("hands").getObj(0).getJSONArray("palmPosition");
-                //handPos[0] = pos.getDouble(0);
-                //handPos[1] = pos.getDouble(1);
-                //handPos[2] = pos.getDouble(2);
+                //Log.i("Websocket_message", s);
+                try {
+                    JSONObject obj = new JSONObject(s);
+                    JSONArray pos = obj.getJSONArray("hands").getJSONObject(0).getJSONArray("palmPosition");
+                    handPos[0] = (float)pos.getDouble(0);
+                    handPos[1] = (float)pos.getDouble(1);
+                    handPos[2] = (float)pos.getDouble(2);
+                    Log.i("Websocket_json", String.format("(%f, %f, %f)", handPos[0], handPos[1], handPos[2]));
+                } catch (JSONException e) {
+                    Log.i("Websocket_json", "Not the right json obj");
+                }
             }
 
             @Override
