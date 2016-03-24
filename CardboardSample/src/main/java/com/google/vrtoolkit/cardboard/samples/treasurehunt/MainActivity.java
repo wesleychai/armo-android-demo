@@ -1,3 +1,5 @@
+/* vim: set ts=2 sw=2: */
+
 /*
  * Copyright 2014 Google Inc. All Rights Reserved.
  *
@@ -39,6 +41,14 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+//import org.json;
 
 /**
  * A Cardboard sample application.
@@ -116,6 +126,11 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private CardboardAudioEngine cardboardAudioEngine;
   private volatile int soundId = CardboardAudioEngine.INVALID_ID;
 
+  //Websocket things
+  private WebSocketClient mWebSocketClient;
+
+  private float[] handPos;
+
   /**
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
    *
@@ -192,6 +207,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Initialize 3D audio engine.
     cardboardAudioEngine =
         new CardboardAudioEngine(getAssets(), CardboardAudioEngine.RenderingQuality.HIGH);
+
+    connectWebSocket();
+    handPos = new float[3];
   }
 
   @Override
@@ -393,7 +411,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
-    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
+    //Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
 
     // Build the camera matrix and apply it to the ModelView.
     Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -567,4 +585,44 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     return Math.abs(pitch) < PITCH_LIMIT && Math.abs(yaw) < YAW_LIMIT;
   }
+
+  private void connectWebSocket() {
+        URI uri;
+        try {
+            uri = new URI("ws://192.168.0.103:6437/");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        mWebSocketClient = new WebSocketClient(uri) {
+            @Override
+            public void onOpen(ServerHandshake serverHandshake) {
+                Log.i("Websocket", "Opened");
+            }
+
+            @Override
+            public void onMessage(String s) {
+                final String message = s;
+                Log.i("Websocket_message", s);
+                //JSONObject obj = new JSONObject(s);
+                //JSONArray pos = obj.getJSONArray("hands").getObj(0).getJSONArray("palmPosition");
+                //handPos[0] = pos.getDouble(0);
+                //handPos[1] = pos.getDouble(1);
+                //handPos[2] = pos.getDouble(2);
+            }
+
+            @Override
+            public void onClose(int i, String s, boolean b) {
+                Log.i("Websocket", "Closed " + s);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.i("Websocket", "Error " + e.getMessage());
+            }
+        };
+        mWebSocketClient.connect();
+    }
+
 }
