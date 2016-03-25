@@ -88,7 +88,13 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private FloatBuffer cubeFoundColors;
   private FloatBuffer cubeNormals;
 
+  private FloatBuffer miniCubeVertices;
+  private FloatBuffer miniCubeColors;
+  private FloatBuffer miniCubeFoundColors;
+  private FloatBuffer miniCubeNormals;
+
   private int cubeProgram;
+  private int miniCubeProgram;
   private int floorProgram;
 
   private int cubePositionParam;
@@ -99,6 +105,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int cubeModelViewProjectionParam;
   private int cubeLightPosParam;
 
+  private int miniCubePositionParam;
+  private int miniCubeNormalParam;
+  private int miniCubeColorParam;
+  private int miniCubeModelParam;
+  private int miniCubeModelViewParam;
+  private int miniCubeModelViewProjectionParam;
+  private int miniCubeLightPosParam;
+
   private int floorPositionParam;
   private int floorNormalParam;
   private int floorColorParam;
@@ -108,6 +122,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int floorLightPosParam;
 
   private float[] modelCube;
+  private float[] modelMiniCube;
   private float[] camera;
   private float[] view;
   private float[] headView;
@@ -192,13 +207,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     setCardboardView(cardboardView);
 
     modelCube = new float[16];
+    modelMiniCube = new float[16];
     camera = new float[16];
     view = new float[16];
     modelViewProjection = new float[16];
     modelView = new float[16];
     modelFloor = new float[16];
     // Model first appears directly in front of user.
-    modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 2.0f};
+    modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 0.5f};
     headRotation = new float[4];
     headView = new float[16];
     vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -274,6 +290,24 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     cubeNormals.put(WorldLayoutData.CUBE_NORMALS);
     cubeNormals.position(0);
 
+    ByteBuffer mcbbVertices = ByteBuffer.allocateDirect(WorldLayoutData.MINI_CUBE_COORDS.length * 4);
+    mcbbVertices.order(ByteOrder.nativeOrder());
+    miniCubeVertices = mcbbVertices.asFloatBuffer();
+    miniCubeVertices.put(WorldLayoutData.MINI_CUBE_COORDS);
+    miniCubeVertices.position(0);
+
+    ByteBuffer mcbbColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
+    mcbbColors.order(ByteOrder.nativeOrder());
+    miniCubeColors = mcbbColors.asFloatBuffer();
+    miniCubeColors.put(WorldLayoutData.CUBE_COLORS);
+    miniCubeColors.position(0);
+
+    ByteBuffer mcbbNormals = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4);
+    mcbbNormals.order(ByteOrder.nativeOrder());
+    miniCubeNormals = mcbbNormals.asFloatBuffer();
+    miniCubeNormals.put(WorldLayoutData.CUBE_NORMALS);
+    miniCubeNormals.position(0);
+
     // make a floor
     ByteBuffer bbFloorVertices = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COORDS.length * 4);
     bbFloorVertices.order(ByteOrder.nativeOrder());
@@ -317,6 +351,30 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     GLES20.glEnableVertexAttribArray(cubePositionParam);
     GLES20.glEnableVertexAttribArray(cubeNormalParam);
     GLES20.glEnableVertexAttribArray(cubeColorParam);
+
+    checkGLError("Cube program params");
+
+    //Minicube
+    miniCubeProgram = GLES20.glCreateProgram();
+    GLES20.glAttachShader(miniCubeProgram, vertexShader);
+    GLES20.glAttachShader(miniCubeProgram, passthroughShader);
+    GLES20.glLinkProgram(miniCubeProgram);
+    GLES20.glUseProgram(miniCubeProgram);
+
+    checkGLError("Cube program");
+
+    miniCubePositionParam = GLES20.glGetAttribLocation(miniCubeProgram, "a_Position");
+    miniCubeNormalParam = GLES20.glGetAttribLocation(miniCubeProgram, "a_Normal");
+    miniCubeColorParam = GLES20.glGetAttribLocation(miniCubeProgram, "a_Color");
+
+    miniCubeModelParam = GLES20.glGetUniformLocation(miniCubeProgram, "u_Model");
+    miniCubeModelViewParam = GLES20.glGetUniformLocation(miniCubeProgram, "u_MVMatrix");
+    miniCubeModelViewProjectionParam = GLES20.glGetUniformLocation(miniCubeProgram, "u_MVP");
+    miniCubeLightPosParam = GLES20.glGetUniformLocation(miniCubeProgram, "u_LightPos");
+
+    GLES20.glEnableVertexAttribArray(miniCubePositionParam);
+    GLES20.glEnableVertexAttribArray(miniCubeNormalParam);
+    GLES20.glEnableVertexAttribArray(miniCubeColorParam);
 
     checkGLError("Cube program params");
 
@@ -382,6 +440,13 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("updateCubePosition");
   }
 
+  private void updateMiniCubePosition() {
+    Matrix.setIdentityM(modelMiniCube, 0);
+    //We normalize the distance as well
+    //Matrix.translateM(modelMiniCube, 0, handPos[0]/(float)50.0, handPos[1]/(float)50.0, handPos[2]/(float)50.0);
+    Matrix.translateM(modelMiniCube, 0, -handPos[0]/(float)50.0, -handPos[2]/(float)50.0, -handPos[1]/(float)50.0);
+  }
+
   /**
    * Converts a raw text file into a string.
    *
@@ -426,6 +491,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         headRotation[0], headRotation[1], headRotation[2], headRotation[3]);
 
     checkGLError("onReadyToDraw");
+
+    updateMiniCubePosition();
   }
 
   /**
@@ -452,6 +519,21 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
     drawCube();
+
+    //Not sure if we can just reuse modelView like this
+    Matrix.multiplyMM(modelView, 0, view, 0, modelMiniCube, 0);
+
+    //Not working 
+    //float[] ident = new Matrix(eye.getPerspective(Z_NEAR, Z_FAR));
+    //Matrix.setIdentityM(ident, 0); //Cheating so that we have relative hand movement
+    //end not working
+
+    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    
+    //doesn't work :(
+    //Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelMiniCube, 0);
+    
+    drawMiniCube();
 
     // Set modelView for the floor, so we draw floor in the correct location
     Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
@@ -494,6 +576,32 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Drawing cube");
   }
 
+  public void drawMiniCube() {
+    GLES20.glUseProgram(miniCubeProgram);
+
+    GLES20.glUniform3fv(miniCubeLightPosParam, 1, lightPosInEyeSpace, 0);
+
+    // Set the Model in the shader, used to calculate lighting
+    GLES20.glUniformMatrix4fv(miniCubeModelParam, 1, false, modelMiniCube, 0);
+
+    // Set the ModelView in the shader, used to calculate lighting
+    GLES20.glUniformMatrix4fv(miniCubeModelViewParam, 1, false, modelView, 0);
+
+    // Set the position of the miniCube
+    GLES20.glVertexAttribPointer(
+        miniCubePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, miniCubeVertices);
+
+    // Set the ModelViewProjection matrix in the shader.
+    GLES20.glUniformMatrix4fv(miniCubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
+
+    // Set the normal positions of the miniCube, again for shading
+    GLES20.glVertexAttribPointer(miniCubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, miniCubeNormals);
+    GLES20.glVertexAttribPointer(miniCubeColorParam, 4, GLES20.GL_FLOAT, false, 0, cubeColors);
+
+    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
+    checkGLError("Drawing miniCube");
+  }
+
   /**
    * Draw the floor.
    *
@@ -529,7 +637,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     if (isLookingAtObject()) {
       score++;
       overlayView.show3DToast("Found it! Look around for another one.\nScore = " + score);
-      hideObject();
+      //hideObject();
     } else {
       overlayView.show3DToast("Look around to find the object!");
     }
