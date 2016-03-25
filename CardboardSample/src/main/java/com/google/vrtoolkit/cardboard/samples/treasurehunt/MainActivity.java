@@ -440,11 +440,73 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("updateCubePosition");
   }
 
-  private void updateMiniCubePosition() {
-    Matrix.setIdentityM(modelMiniCube, 0);
+
+  private float[] quaternionToMatrix(float[] _data, float x, float y, float z, float w){
+      float x2, y2, z2, xx, xy, xz, yy, yz, zz, wx, wy, wz;
+      //if(null == _data)
+          //_data = new float[16];
+      // calculate coefficients
+      x2 = x + x;
+      y2 = y + y;
+      z2 = z + z;
+
+      xx = x * x2;   xy = x * y2;   xz = x * z2;
+      yy = y * y2;   yz = y * z2;   zz = z * z2;
+      wx = w * x2;   wy = w * y2;   wz = w * z2;
+
+      _data[0] = 1.0f - (yy + zz);
+      _data[1] = xy - wz;
+      _data[2] = xz + wy;
+      _data[3] = 0.0f;
+
+      _data[4] = xy + wz;
+      _data[5] = 1.0f - (xx + zz);
+      _data[6] = yz - wx;
+      _data[7] = 0.0f;
+
+      _data[8] = xz - wy;
+      _data[9] = yz + wx;
+      _data[10] = 1.0f - (xx + yy);
+      _data[11] = 0.0f;
+
+      _data[12] = 0.0f;
+      _data[13] = 0.0f;
+      _data[14] = 0.0f;
+      _data[15] = 1.0f;
+
+      return _data;
+  }
+
+
+  //Takes quaternion
+  private void updateMiniCubePosition(float x, float y, float z, float w) {
+    //Matrix.setIdentityM(modelMiniCube, 0);
     //We normalize the distance as well
     //Matrix.translateM(modelMiniCube, 0, handPos[0]/(float)50.0, handPos[1]/(float)50.0, handPos[2]/(float)50.0);
-    Matrix.translateM(modelMiniCube, 0, -handPos[0]/(float)50.0, -handPos[2]/(float)50.0, -handPos[1]/(float)50.0);
+    //This accounts for the reversing
+    //Matrix.translateM(modelMiniCube, 0, -handPos[0]/(float)50.0, -handPos[2]/(float)50.0, -handPos[1]/(float)50.0);
+
+    float[] temp_modelMiniCube = new float[16];
+    float[] temp_mRotate = new float[16];
+    Matrix.setIdentityM(temp_modelMiniCube, 0);
+    Matrix.translateM(temp_modelMiniCube, 0, -handPos[0]/(float)50.0, -handPos[2]/(float)50.0, -handPos[1]/(float)50.0);
+    //Matrix.setIdentityM(temp_mRotate, 0);
+    //Matrix.rotateM(temp_mRotate, 0, 45, 1, 0, 0); //This rotates the cube
+    quaternionToMatrix(temp_mRotate, -x, -y, -z, w);
+
+    Matrix.multiplyMM(modelMiniCube, 0, temp_mRotate, 0, temp_modelMiniCube, 0);
+  }
+
+  private void updateMiniCubePosition(float pitch, float yaw, float roll) {
+    float[] temp_modelMiniCube = new float[16];
+    float[] temp_mRotate = new float[16];
+    Matrix.setIdentityM(temp_modelMiniCube, 0);
+    Matrix.translateM(temp_modelMiniCube, 0, -handPos[0]/(float)50.0, -handPos[2]/(float)50.0, -handPos[1]/(float)50.0);
+    Matrix.setIdentityM(temp_mRotate, 0);
+    Matrix.rotateM(temp_mRotate, 0, 45, 1, 0, 0); //This rotates the cube
+    //quaternionToMatrix(temp_mRotate, x, y, z, w);
+
+    Matrix.multiplyMM(modelMiniCube, 0, temp_mRotate, 0, temp_modelMiniCube, 0);
   }
 
   /**
@@ -492,7 +554,12 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     checkGLError("onReadyToDraw");
 
-    updateMiniCubePosition();
+    //float[] headAngles = new float[3];
+    //headTransform.getEulerAngles(headAngles, 0)
+
+    //float[] quat = new float[4];
+    //headTransform.getQuaternion(quat, 0);
+    updateMiniCubePosition(headRotation[0], headRotation[1], headRotation[2], headRotation[3]);
   }
 
   /**
@@ -520,8 +587,11 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
     drawCube();
 
+
+    float[] mRotationCube = new float[16];
     //Not sure if we can just reuse modelView like this
     Matrix.multiplyMM(modelView, 0, view, 0, modelMiniCube, 0);
+    //Matrix.multiplyMM(mRotationCube, 0, view, 0, modelView, 0);
 
     //Not working 
     //float[] ident = new Matrix(eye.getPerspective(Z_NEAR, Z_FAR));
@@ -529,6 +599,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     //end not working
 
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    //Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, mRotationCube, 0);
     
     //doesn't work :(
     //Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelMiniCube, 0);
