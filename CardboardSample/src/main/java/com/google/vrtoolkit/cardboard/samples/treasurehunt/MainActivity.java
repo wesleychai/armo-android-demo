@@ -52,6 +52,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.Socket;
+import java.io.OutputStream;
+
 /**
  * A Cardboard sample application.
  */
@@ -147,6 +150,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private WebSocketClient mWebSocketClient;
 
   private float[] handPos;
+  private float WALL_DIST = 3.5f;
 
   /**
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
@@ -214,7 +218,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     modelView = new float[16];
     modelFloor = new float[16];
     // Model first appears directly in front of user.
-    modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 0.5f};
+    //modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 0.5f};
+    modelPosition = new float[] {0.0f, 0.0f, -WALL_DIST};
     headRotation = new float[4];
     headView = new float[16];
     vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -495,6 +500,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     quaternionToMatrix(temp_mRotate, -x, -y, -z, w);
 
     Matrix.multiplyMM(modelMiniCube, 0, temp_mRotate, 0, temp_modelMiniCube, 0);
+
+    Log.i("Armo", String.format("%f", -handPos[1]/(float)50));
+    if (-handPos[1]/(float)50 < -WALL_DIST+1) { //offset because this is cube center, we want the wall position
+        sendArmoRequest(true);
+        Log.i("Armo", "Sending_lock");
+    } else {
+        sendArmoRequest(false);
+        Log.i("Armo", "Sending_unlock");
+    }
+
   }
 
   private void updateMiniCubePosition(float pitch, float yaw, float roll) {
@@ -811,4 +826,56 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         mWebSocketClient.connect();
     }
 
+    private String ARMO_HOST = "192.168.0.107";
+    private boolean armo_locked = false;
+
+    private void sendArmoRequest(boolean _lock) {
+        final boolean lock = _lock;
+        
+        if (lock == false) {
+            if (armo_locked == false) {
+                return;
+            }
+        }
+        if (lock) {
+            if (armo_locked == true) {
+                return;
+            }
+        }
+    new Thread(
+            new Runnable() {
+              public void run() {
+        try {
+            String host = ARMO_HOST;
+            Socket socket = new Socket(host, 5000);
+            String request = "GET /position/180 HTTP/1.0\r\n\r\n";
+            if (lock == false) {
+                if (armo_locked == false) {
+                    return;
+                }
+                armo_locked = false;
+            }
+            if (lock) {
+                if (armo_locked == true) {
+                    return;
+                }
+                request = "GET /position/85 HTTP/1.0\r\n\r\n";
+                armo_locked = true;
+            }
+            OutputStream os = socket.getOutputStream();
+            os.write(request.getBytes());
+            os.flush();
+
+            InputStream is = socket.getInputStream();
+            int ch;
+            while( (ch=is.read())!= -1)
+                    System.out.print((char)ch);
+            socket.close();
+        } catch (IOException e) {
+            Log.e("Lock_request", "Something went wrong: " + e.getMessage());
+        }
+              }
+            })
+        .start();
+    }
 }
