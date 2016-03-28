@@ -150,7 +150,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private WebSocketClient mWebSocketClient;
 
   private float[] handPos;
-  private float WALL_DIST = 3.5f;
+  private float WALL_DIST = 4.25f;
 
   /**
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
@@ -785,7 +785,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("ws://192.168.0.103:6437/");
+            uri = new URI("ws://192.168.0.105:6437/");
+            //uri = new URI("ws://172.20.10.4:6437/");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -826,7 +827,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         mWebSocketClient.connect();
     }
 
-    private String ARMO_HOST = "192.168.0.107";
+    //private String ARMO_HOST = "192.168.0.107";
+    private String ARMO_HOST = "172.20.10.5";
     private boolean armo_locked = false;
 
     private void sendArmoRequest(boolean _lock) {
