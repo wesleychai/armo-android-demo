@@ -301,10 +301,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     miniCubeVertices.put(WorldLayoutData.MINI_CUBE_COORDS);
     miniCubeVertices.position(0);
 
-    ByteBuffer mcbbColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
+    ByteBuffer mcbbColors = ByteBuffer.allocateDirect(WorldLayoutData.MINI_CUBE_COLORS.length * 4);
     mcbbColors.order(ByteOrder.nativeOrder());
     miniCubeColors = mcbbColors.asFloatBuffer();
-    miniCubeColors.put(WorldLayoutData.CUBE_COLORS);
+    miniCubeColors.put(WorldLayoutData.MINI_CUBE_COLORS);
     miniCubeColors.position(0);
 
     ByteBuffer mcbbNormals = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4);
@@ -682,7 +682,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Set the normal positions of the miniCube, again for shading
     GLES20.glVertexAttribPointer(miniCubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, miniCubeNormals);
-    GLES20.glVertexAttribPointer(miniCubeColorParam, 4, GLES20.GL_FLOAT, false, 0, cubeColors);
+    GLES20.glVertexAttribPointer(miniCubeColorParam, 4, GLES20.GL_FLOAT, false, 0, miniCubeColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     checkGLError("Drawing miniCube");
@@ -785,8 +785,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("ws://192.168.0.105:6437/");
-            //uri = new URI("ws://172.20.10.4:6437/");
+            //uri = new URI("ws://192.168.0.105:6437/");
+            uri = new URI("ws://172.20.10.4:6437/");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;

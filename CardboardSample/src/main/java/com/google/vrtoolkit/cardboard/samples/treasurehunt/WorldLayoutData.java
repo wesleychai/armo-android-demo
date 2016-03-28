@@ -221,6 +221,56 @@ public final class WorldLayoutData {
       1.0f,  0.6523f, 0.0f, 1.0f,
   };
 
+  public static final float[] MINI_CUBE_COLORS = new float[] {
+      // front, yellow
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+
+      // right, yel1ow
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+
+      // back, yell1w
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+
+      // left, yell1w
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+
+      // top, yello1
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+
+      // bottom, yellow
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+      1.0f,  0.0f, 1.0f, 1.0f,
+  };
+
   public static final float[] CUBE_NORMALS = new float[] {
       // Front face
       0.0f, 0.0f, 1.0f,
